@@ -132,22 +132,25 @@ export default function Leagues() {
                       </span>
                       <div className="text-sm text-gray-500 space-y-1">
                         <p>Teams: {league.teamCount || 0}</p>
-                        <p>
-                          Created on:{" "}
-                          {league.createdAt
-                            ? new Date(
-                                league.createdAt.seconds * 1000
-                              ).toLocaleDateString()
-                            : "Invalid date"}
-                        </p>
                       </div>
                     </div>
-                    <button
-                      className="text-red-500 cursor-pointer"
-                      onClick={() => handleDeleteLeague(league.id)}
-                    >
-                      <FaRegTrashAlt />
-                    </button>
+                    <div className="flex items-center gap-4">
+                      {" "}
+                      <p className="text-sm text-gray-500">
+                        Created on:{" "}
+                        {league.createdAt
+                          ? new Date(
+                              league.createdAt.seconds * 1000
+                            ).toLocaleDateString()
+                          : "Invalid date"}
+                      </p>
+                      <button
+                        className="text-red-500 cursor-pointer"
+                        onClick={() => handleDeleteLeague(league.id)}
+                      >
+                        <FaRegTrashAlt />
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
