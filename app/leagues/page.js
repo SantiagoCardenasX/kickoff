@@ -2,14 +2,20 @@
 
 import Sidebar from "@/components/sidebar";
 import { AuthContextProvider } from "../login/_utils/auth-context";
-import { getLeagues, addLeague } from "./_services/leagues-service";
+import {
+  getLeagues,
+  addLeague,
+  deleteLeague,
+} from "./_services/leagues-service";
 import { useEffect, useState } from "react";
 import { auth } from "@/app/login/_utils/firebase";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 export default function Leagues() {
   const [leagues, setLeagues] = useState([]);
   const [newLeagueName, setNewLeagueName] = useState("");
   const [userId, setUserId] = useState(null); // Store userId in state
+  const [loading, setLoading] = useState(false); // Add loading state
 
   // Update userId when auth state changes
   useEffect(() => {
@@ -33,11 +39,20 @@ export default function Leagues() {
   }, [userId]);
 
   const loadLeagues = async (userId) => {
+    setLoading(true); // Set loading to true before fetching
     try {
       const leagues = await getLeagues(userId); // Fetch leagues for the current user
+
+      // Sort leagues alphabetically with natural order (handles numbers correctly)
+      leagues.sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { numeric: true })
+      );
+
       setLeagues(leagues); // Update leagues state
     } catch (error) {
       console.error("Error loading leagues:", error);
+    } finally {
+      setLoading(false); // Set loading to false after fetching
     }
   };
 
@@ -57,6 +72,19 @@ export default function Leagues() {
       console.error("Error adding league:", error);
     }
   };
+
+  const handleDeleteLeague = async (leagueId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this league?");
+    if (!confirmDelete) return; // Do nothing if the user cancels
+  
+    try {
+      await deleteLeague(leagueId);
+      loadLeagues(userId); // Reload leagues after deleting one
+    } catch (error) {
+      console.error("Error deleting league:", error);
+    }
+  };
+  
 
   return (
     <>
@@ -96,18 +124,37 @@ export default function Leagues() {
             {/* List of Leagues */}
             <div className="mt-8">
               <h2 className="text-2xl font-semibold mb-4">Your Leagues</h2>
-              {leagues.length > 0 ? (
+              {loading ? (
+                <p className="text-gray-500">Loading leagues...</p>
+              ) : leagues.length > 0 ? (
                 <ul className="space-y-4">
                   {leagues.map((league) => (
                     <li
                       key={league.id}
                       className="p-4 bg-white shadow rounded-lg flex justify-between items-center"
                     >
-                      <span className="text-lg font-medium">{league.name}</span>
-                      <span className="text-sm text-gray-500">
-                        Created on:{" "}
-                        {new Date(league.createdAt).toLocaleDateString()}
-                      </span>
+                      {/* League Name and Date */}
+                      <div>
+                        <span className="text-lg font-medium block">
+                          {league.name}
+                        </span>
+                        <span className="text-sm text-gray-500 block">
+                          Created on:{" "}
+                          {league.createdAt
+                            ? new Date(
+                                league.createdAt.seconds * 1000
+                              ).toLocaleDateString()
+                            : "Invalid date"}
+                        </span>
+                      </div>
+
+                      {/* Trash Can Icon */}
+                      <button
+                        className="text-red-500 cursor-pointer"
+                        onClick={() => handleDeleteLeague(league.id)}
+                      >
+                        <FaRegTrashAlt />
+                      </button>
                     </li>
                   ))}
                 </ul>

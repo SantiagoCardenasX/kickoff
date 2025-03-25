@@ -1,5 +1,13 @@
 import { db } from "../../login/_utils/firebase";
-import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
+import {
+  doc,
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  query,
+  where,
+} from "firebase/firestore";
 
 export async function getLeagues(userId) {
   // Add userId parameter
@@ -18,4 +26,8 @@ export async function getLeagues(userId) {
 export async function addLeague(userId, league) {
   league.userId = userId;
   await addDoc(collection(db, "leagues"), league);
+}
+
+export async function deleteLeague(leagueId) {
+  await deleteDoc(doc(db, "leagues", leagueId));
 }
