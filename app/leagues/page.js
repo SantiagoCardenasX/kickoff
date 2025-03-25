@@ -10,25 +10,35 @@ import {
 import { useEffect, useState } from "react";
 import { auth } from "@/app/login/_utils/firebase";
 import { FaRegTrashAlt } from "react-icons/fa";
+import { useRouter } from "next/navigation"; // Import useRouter for redirect
 
 export default function Leagues() {
   const [leagues, setLeagues] = useState([]);
   const [newLeagueName, setNewLeagueName] = useState("");
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter(); // Initialize the router
+  const [isMounted, setIsMounted] = useState(false); // Track if component is mounted
 
   // Update userId when auth state changes
+  useEffect(() => {
+    setIsMounted(true); // Mark the component as mounted once it renders
+  }, []);
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setUserId(user.uid); // Set userId if authenticated
       } else {
         setUserId(null); // Set to null if no user is logged in
+        if (isMounted) {
+          router.push("/"); // Redirect to homepage if user is not logged in
+        }
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isMounted, router]); // Add `isMounted` and `router` to dependencies
 
   // Fetch leagues whenever userId changes
   useEffect(() => {
@@ -83,6 +93,10 @@ export default function Leagues() {
     }
   };
 
+  if (!isMounted) {
+    return null; // Return null while waiting for client-side mount
+  }
+
   return (
     <AuthContextProvider>
       <div className="flex">
@@ -121,7 +135,6 @@ export default function Leagues() {
             ) : leagues.length > 0 ? (
               <ul className="space-y-4">
                 {leagues.map((league) => (
-                  // In your list item JSX
                   <li
                     key={league.id}
                     className="p-4 bg-white shadow rounded-lg flex justify-between items-center"
@@ -135,7 +148,6 @@ export default function Leagues() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      {" "}
                       <p className="text-sm text-gray-500">
                         Created on:{" "}
                         {league.createdAt
