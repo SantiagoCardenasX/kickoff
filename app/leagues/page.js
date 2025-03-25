@@ -121,6 +121,7 @@ export default function Leagues() {
             ) : leagues.length > 0 ? (
               <ul className="space-y-4">
                 {leagues.map((league) => (
+                  // In your list item JSX
                   <li
                     key={league.id}
                     className="p-4 bg-white shadow rounded-lg flex justify-between items-center"
@@ -129,14 +130,17 @@ export default function Leagues() {
                       <span className="text-lg font-medium block">
                         {league.name}
                       </span>
-                      <span className="text-sm text-gray-500 block">
-                        Created on:{" "}
-                        {league.createdAt
-                          ? new Date(
-                              league.createdAt.seconds * 1000
-                            ).toLocaleDateString()
-                          : "Invalid date"}
-                      </span>
+                      <div className="text-sm text-gray-500 space-y-1">
+                        <p>Teams: {league.teamCount || 0}</p>
+                        <p>
+                          Created on:{" "}
+                          {league.createdAt
+                            ? new Date(
+                                league.createdAt.seconds * 1000
+                              ).toLocaleDateString()
+                            : "Invalid date"}
+                        </p>
+                      </div>
                     </div>
                     <button
                       className="text-red-500 cursor-pointer"
