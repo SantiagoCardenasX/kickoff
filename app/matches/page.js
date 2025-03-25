@@ -7,8 +7,8 @@ export default function Page() {
         <div className="flex">
           <Sidebar />
           <div className="lg:ml-64 p-10 transition-all duration-300">
-            <h1 className="text-3xl font-semibold">Teams</h1>
-            <p className="mt-4 text-lg">Create, delete, and organize teams within your league.</p>
+            <h1 className="text-3xl font-semibold">Matches</h1>
+            <p className="mt-4 text-lg">Add, edit, and remove upcoming matches for your league with ease.</p>
           </div>
         </div>
       </AuthContextProvider>
