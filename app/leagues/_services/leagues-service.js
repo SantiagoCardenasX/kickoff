@@ -9,25 +9,25 @@ import {
   where,
 } from "firebase/firestore";
 
+// Fetch leagues for a specific user
 export async function getLeagues(userId) {
-  // Add userId parameter
   const leagues = [];
-  const q = query(
-    collection(db, "leagues"),
-    where("userId", "==", userId) // Add this filter
-  );
-  const querySnapshot = await getDocs(q);
+  const leaguesRef = collection(db, "users", userId, "leagues"); // Access the user's leagues subcollection
+  const querySnapshot = await getDocs(leaguesRef);
   querySnapshot.forEach((doc) => {
-    leagues.push({ id: doc.id, ...doc.data() }); // Include document ID
+    leagues.push({ id: doc.id, ...doc.data() });
   });
   return leagues;
 }
 
+// Add a new league for a specific user
 export async function addLeague(userId, league) {
-  league.userId = userId;
-  await addDoc(collection(db, "leagues"), league);
+  const leaguesRef = collection(db, "users", userId, "leagues"); // Access the user's leagues subcollection
+  await addDoc(leaguesRef, {...league, userId}); // Add a new league document
 }
 
-export async function deleteLeague(leagueId) {
-  await deleteDoc(doc(db, "leagues", leagueId));
+// Delete a specific league for a user
+export async function deleteLeague(userId, leagueId) {
+  const leagueRef = doc(db, "users", userId, "leagues", leagueId); // Access the specific league document
+  await deleteDoc(leagueRef); // Delete the league document
 }

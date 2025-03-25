@@ -14,8 +14,8 @@ import { FaRegTrashAlt } from "react-icons/fa";
 export default function Leagues() {
   const [leagues, setLeagues] = useState([]);
   const [newLeagueName, setNewLeagueName] = useState("");
-  const [userId, setUserId] = useState(null); // Store userId in state
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Update userId when auth state changes
   useEffect(() => {
@@ -27,7 +27,6 @@ export default function Leagues() {
       }
     });
 
-    // Cleanup the subscription when the component unmounts
     return () => unsubscribe();
   }, []);
 
@@ -39,25 +38,22 @@ export default function Leagues() {
   }, [userId]);
 
   const loadLeagues = async (userId) => {
-    setLoading(true); // Set loading to true before fetching
+    setLoading(true);
     try {
       const leagues = await getLeagues(userId); // Fetch leagues for the current user
-
-      // Sort leagues alphabetically with natural order (handles numbers correctly)
       leagues.sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { numeric: true })
       );
-
-      setLeagues(leagues); // Update leagues state
+      setLeagues(leagues);
     } catch (error) {
       console.error("Error loading leagues:", error);
     } finally {
-      setLoading(false); // Set loading to false after fetching
+      setLoading(false);
     }
   };
 
   const handleAddLeague = async () => {
-    if (!newLeagueName.trim()) return; // Prevent adding empty league names
+    if (!newLeagueName.trim()) return;
 
     if (!userId) {
       console.error("User not authenticated");
@@ -65,108 +61,100 @@ export default function Leagues() {
     }
 
     try {
-      await addLeague(userId, { name: newLeagueName, createdAt: new Date() }); // Add league with userId
+      await addLeague(userId, { name: newLeagueName, createdAt: new Date() }); // Add league for the current user
       setNewLeagueName(""); // Clear the input field
-      loadLeagues(userId); // Reload leagues after adding a new one
+      loadLeagues(userId); // Reload leagues
     } catch (error) {
       console.error("Error adding league:", error);
     }
   };
 
   const handleDeleteLeague = async (leagueId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this league?");
-    if (!confirmDelete) return; // Do nothing if the user cancels
-  
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this league?"
+    );
+    if (!confirmDelete) return;
+
     try {
-      await deleteLeague(leagueId);
-      loadLeagues(userId); // Reload leagues after deleting one
+      await deleteLeague(userId, leagueId); // Delete league for the current user
+      loadLeagues(userId); // Reload leagues
     } catch (error) {
       console.error("Error deleting league:", error);
     }
   };
-  
 
   return (
-    <>
-      {/* Wrap the layout with AuthContextProvider */}
-      <AuthContextProvider>
-        <div className="flex">
-          {/* Sidebar */}
-          <Sidebar />
+    <AuthContextProvider>
+      <div className="flex">
+        <Sidebar />
+        <div className="lg:ml-64 p-10 transition-all duration-300 flex-1">
+          <h1 className="text-3xl font-semibold">Leagues</h1>
+          <p className="mt-4 text-lg">
+            Welcome to the Leagues page! Manage your soccer leagues with ease.
+          </p>
 
-          {/* Main Content */}
-          <div className="lg:ml-64 p-10 transition-all duration-300 flex-1">
-            <h1 className="text-3xl font-semibold">Leagues</h1>
-            <p className="mt-4 text-lg">
-              Welcome to the Leagues page! Manage your soccer leagues with ease.
-            </p>
-
-            {/* Add League Form */}
-            <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-4">Add a New League</h2>
-              <div className="flex items-center gap-4">
-                <input
-                  type="text"
-                  value={newLeagueName}
-                  onChange={(e) => setNewLeagueName(e.target.value)}
-                  placeholder="Enter league name"
-                  className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2A9D58]"
-                />
-                <button
-                  onClick={handleAddLeague}
-                  className="bg-[#2A9D58] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#1D2A68] transition duration-300 cursor-pointer"
-                >
-                  Add League
-                </button>
-              </div>
-            </div>
-
-            {/* List of Leagues */}
-            <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-4">Your Leagues</h2>
-              {loading ? (
-                <p className="text-gray-500">Loading leagues...</p>
-              ) : leagues.length > 0 ? (
-                <ul className="space-y-4">
-                  {leagues.map((league) => (
-                    <li
-                      key={league.id}
-                      className="p-4 bg-white shadow rounded-lg flex justify-between items-center"
-                    >
-                      {/* League Name and Date */}
-                      <div>
-                        <span className="text-lg font-medium block">
-                          {league.name}
-                        </span>
-                        <span className="text-sm text-gray-500 block">
-                          Created on:{" "}
-                          {league.createdAt
-                            ? new Date(
-                                league.createdAt.seconds * 1000
-                              ).toLocaleDateString()
-                            : "Invalid date"}
-                        </span>
-                      </div>
-
-                      {/* Trash Can Icon */}
-                      <button
-                        className="text-red-500 cursor-pointer"
-                        onClick={() => handleDeleteLeague(league.id)}
-                      >
-                        <FaRegTrashAlt />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500">
-                  No leagues found. Add a new league to get started!
-                </p>
-              )}
+          {/* Add League Form */}
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold mb-4">Add a New League</h2>
+            <div className="flex items-center gap-4">
+              <input
+                type="text"
+                value={newLeagueName}
+                onChange={(e) => setNewLeagueName(e.target.value)}
+                placeholder="Enter league name"
+                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2A9D58]"
+              />
+              <button
+                onClick={handleAddLeague}
+                className="bg-[#2A9D58] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#1D2A68] transition duration-300 cursor-pointer"
+              >
+                Add League
+              </button>
             </div>
           </div>
+
+          {/* List of Leagues */}
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold mb-4">Your Leagues</h2>
+            {loading ? (
+              <p className="text-gray-500">Loading leagues...</p>
+            ) : leagues.length > 0 ? (
+              <ul className="space-y-4">
+                {leagues.map((league) => (
+                  <li
+                    key={league.id}
+                    className="p-4 bg-white shadow rounded-lg flex justify-between items-center"
+                  >
+                    <div>
+                      <span className="text-lg font-medium block">
+                        {league.name}
+                      </span>
+                      <span className="text-sm text-gray-500 block">
+                        Created on:{" "}
+                        {league.createdAt
+                          ? new Date(
+                              league.createdAt.seconds * 1000
+                            ).toLocaleDateString()
+                          : "Invalid date"}
+                      </span>
+                    </div>
+                    <button
+                      className="text-red-500 cursor-pointer"
+                      onClick={() => handleDeleteLeague(league.id)}
+                    >
+                      <FaRegTrashAlt />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">
+                No leagues found. Add a new league to get started!
+              </p>
+            )}
+          </div>
         </div>
-      </AuthContextProvider>
-    </>
+      </div>
+    </AuthContextProvider>
   );
 }
