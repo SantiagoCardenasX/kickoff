@@ -3,9 +3,22 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter for navigation
+import { useUserAuth } from "@/app/login/_utils/auth-context";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { firebaseSignOut } = useUserAuth();
+  const router = useRouter(); // Initialize the router for navigation
+
+  const handleSignOut = async () => {
+    try {
+      await firebaseSignOut(); // Firebase sign-out function
+      router.push("/login"); // Redirect to the login page after signing out
+    } catch (error) {
+      console.error("Error signing out", error);
+    }
+  };
 
   return (
     <>
@@ -76,6 +89,16 @@ export default function Sidebar() {
             Standings
           </Link>
         </nav>
+
+        {/* Sign Out Button */}
+        <div className="mt-60">
+          <button
+            className="w-full text-lg font-medium bg-[#2A9D58] hover:bg-[#FF3B30] hover:text-white px-4 py-2 rounded-lg transition duration-300 text-center cursor-pointer"
+            onClick={handleSignOut}
+          >
+            Sign Out
+          </button>
+        </div>
 
         {/* Footer */}
         <div className="mt-auto text-center text-sm text-gray-300">
