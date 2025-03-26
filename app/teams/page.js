@@ -98,6 +98,10 @@ export default function Teams() {
         <div className="lg:ml-64 p-10 transition-all duration-300 flex-1">
           <h1 className="text-3xl font-semibold">Teams Management</h1>
 
+          <p className="mt-4 text-lg">
+            Create, manage, and delete teams within your selected league.
+          </p>
+
           {/* League Selection */}
           <div className="mt-8">
             <h2 className="text-2xl font-semibold mb-4">Select League</h2>
