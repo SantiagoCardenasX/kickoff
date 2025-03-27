@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useSortBy, useTable } from "react-table";
 import { auth } from "@/app/login/_utils/firebase";
 import { getLeagues } from "../leagues/_services/leagues-service";
 import { getTeams } from "../teams/_services/team-service";
@@ -57,75 +56,16 @@ export default function Standings() {
     loadTeams();
   }, [loadTeams]);
 
-  const columns = useMemo(
-    () => [
-      {
-        Header: "Position",
-        accessor: "position",
-        Cell: ({ row }) => row.index + 1,
-      },
-      {
-        Header: "Team",
-        accessor: "name",
-        Cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            {row.original.logo && (
-              <Image
-                src={row.original.logo}
-                alt={row.original.name}
-                width={32}
-                height={32}
-                className="w-8 h-8 object-cover rounded-full"
-              />
-            )}
-            <span className="font-medium">{row.original.name}</span>
-          </div>
-        ),
-      },
-      { Header: "MP", accessor: "matchesPlayed" },
-      { Header: "W", accessor: "wins" },
-      { Header: "D", accessor: "draws" },
-      { Header: "L", accessor: "losses" },
-      { Header: "GF", accessor: "goalsScored" },
-      { Header: "GA", accessor: "goalsConceded" },
-      {
-        Header: "GD",
-        accessor: "goalDifference",
-        Cell: ({ row }) =>
-          row.original.goalsScored - row.original.goalsConceded,
-      },
-      {
-        Header: "Pts",
-        accessor: "points",
-        Cell: ({ row }) => row.original.wins * 3 + row.original.draws,
-      },
-    ],
-    []
-  );
+  const sortedTeams = [...teams].sort((a, b) => {
+    const pointsA = a.wins * 3 + a.draws;
+    const pointsB = b.wins * 3 + b.draws;
+    const gdA = a.goalsScored - a.goalsConceded;
+    const gdB = b.goalsScored - b.goalsConceded;
 
-  const sortedTeams = useMemo(() => {
-    return [...teams].sort((a, b) => {
-      const pointsA = a.wins * 3 + a.draws;
-      const pointsB = b.wins * 3 + b.draws;
-      const gdA = a.goalsScored - a.goalsConceded;
-      const gdB = b.goalsScored - b.goalsConceded;
-
-      if (pointsB !== pointsA) return pointsB - pointsA;
-      if (gdB !== gdA) return gdB - gdA;
-      return b.goalsScored - a.goalsScored;
-    });
-  }, [teams]);
-
-  const tableInstance = useTable(
-    {
-      columns,
-      data: sortedTeams,
-    },
-    useSortBy
-  );
-
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    tableInstance;
+    if (pointsB !== pointsA) return pointsB - pointsA;
+    if (gdB !== gdA) return gdB - gdA;
+    return b.goalsScored - a.goalsScored;
+  });
 
   return (
     <AuthContextProvider>
@@ -163,61 +103,90 @@ export default function Standings() {
             {loading ? (
               <p className="text-gray-500">Loading standings...</p>
             ) : teams.length > 0 ? (
-              <table {...getTableProps()} className="w-full">
+              <table className="w-full">
                 <thead>
-                  {headerGroups.map(
-                    (
-                      headerGroup,
-                      headerGroupIndex // Add index as fallback
-                    ) => (
-                      <tr
-                        {...headerGroup.getHeaderGroupProps()}
-                        key={headerGroupIndex} // Unique key for header group
-                        className="border-b-2 border-gray-200"
-                      >
-                        {headerGroup.headers.map((column) => (
-                          <th
-                            {...column.getHeaderProps(
-                              column.getSortByToggleProps()
-                            )}
-                            key={column.id} // Already correct
-                            className="px-4 py-3 text-left text-sm font-semibold text-gray-600 cursor-pointer hover:bg-gray-50"
-                          >
-                            {column.render("Header")}
-                            <span className="ml-2">
-                              {column.isSorted
-                                ? column.isSortedDesc
-                                  ? "↓"
-                                  : "↑"
-                                : ""}
-                            </span>
-                          </th>
-                        ))}
-                      </tr>
-                    )
-                  )}
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      Position
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      Team
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      MP
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      W
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      D
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      L
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      GF
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      GA
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      GD
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                      Pts
+                    </th>
+                  </tr>
                 </thead>
-                <tbody {...getTableBodyProps()}>
-                  {rows.map((row) => {
-                    prepareRow(row);
-                    return (
-                      <tr
-                        {...row.getRowProps()}
-                        key={row.original?.id || row.id} // Double-check ID existence
-                        className="hover:bg-gray-50 even:bg-gray-100"
-                      >
-                        {row.cells.map((cell) => (
-                          <td
-                            {...cell.getCellProps()}
-                            key={`${row.original?.id}-${cell.column.id}`} // Safe access
-                            className="px-4 py-3 text-sm text-gray-700"
-                          >
-                            {cell.render("Cell")}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                <tbody>
+                  {sortedTeams.map((team, index) => (
+                    <tr
+                      key={team.id}
+                      className="hover:bg-gray-50 even:bg-gray-100"
+                    >
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        <div className="flex items-center gap-3">
+                          {team.logo && (
+                            <Image
+                              src={team.logo}
+                              alt={team.name}
+                              width={32}
+                              height={32}
+                              className="w-8 h-8 object-cover rounded-full"
+                            />
+                          )}
+                          <span className="font-medium">{team.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {team.matchesPlayed || 0}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {team.wins || 0}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {team.draws || 0}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {team.losses || 0}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {team.goalsScored || 0}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {team.goalsConceded || 0}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {(team.goalsScored || 0) - (team.goalsConceded || 0)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {(team.wins || 0) * 3 + (team.draws || 0)}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             ) : (
