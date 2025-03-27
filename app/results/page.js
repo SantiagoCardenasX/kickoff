@@ -109,7 +109,7 @@ export default function Results() {
             Match Results
           </h1>
           <p className="mt-2 text-lg text-gray-600">
-            Submit and view match results for your league
+            Submit and view match results for your league. Click on a match to expand and enter the results.
           </p>
 
           {/* League Selection */}
