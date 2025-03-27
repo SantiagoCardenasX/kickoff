@@ -49,12 +49,11 @@ export default function Matches() {
     if (!selectedLeague || !userId) return;
     setLoading(true);
     try {
-      // Load teams
-      const teamsData = await getTeams(userId, selectedLeague);
+      const [teamsData, matchesData] = await Promise.all([
+        getTeams(userId, selectedLeague),
+        getMatches(userId, selectedLeague),
+      ]);
       setTeams(teamsData);
-
-      // Load matches
-      const matchesData = await getMatches(userId, selectedLeague);
       setMatches(matchesData);
     } catch (error) {
       console.error("Error loading data:", error);
@@ -95,12 +94,18 @@ export default function Matches() {
       await deleteMatch(userId, selectedLeague, matchId);
       await loadTeamsAndMatches();
     } catch (error) {
-      console.error("Error deleting match:", error);
+      alert(error.message);
     }
   };
 
   const filteredAwayTeams = teams.filter((team) => team.id !== homeTeam);
   const filteredHomeTeams = teams.filter((team) => team.id !== awayTeam);
+  const scheduledMatches = matches.filter(
+    (match) => match.status !== "completed"
+  );
+  const completedMatches = matches.filter(
+    (match) => match.status === "completed"
+  );
 
   return (
     <AuthContextProvider>
@@ -205,116 +210,158 @@ export default function Matches() {
               </form>
             </div>
           )}
+
           {/* Matches List */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Scheduled Matches
+              Matches
             </h2>
             {loading ? (
               <p className="text-gray-500">Loading matches...</p>
-            ) : matches.length > 0 ? (
-              <ul className="space-y-4">
-                {matches.map((match) => {
-                  const home = teams.find((t) => t.id === match.homeTeam);
-                  const away = teams.find((t) => t.id === match.awayTeam);
-                  const matchDate = new Date(match.date.seconds * 1000);
-
-                  return (
-                    <li
-                      key={match.id}
-                      className="p-6 bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-200 flex justify-between items-center"
-                    >
-                      <div className="flex-1 flex items-center gap-6">
-                        {/* Home Team */}
-                        <div className="flex items-center gap-4 flex-1">
-                          {home?.logo && (
-                            <Image
-                              src={home.logo}
-                              alt={home.name}
-                              width={64}
-                              height={64}
-                              className="w-16 h-16 object-cover rounded-full border-2 border-gray-200"
-                            />
-                          )}
-                          <span className="text-lg font-semibold text-gray-800">
-                            {home?.name || "Unknown Team"}
-                          </span>
-                        </div>
-
-                        {/* Match Details */}
-                        <div className="flex flex-col items-center mx-4">
-                          <div className="bg-gray-100 px-4 py-2 rounded-full">
-                            <span className="font-bold text-gray-600">VS</span>
-                          </div>
-                          <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            <span>
-                              {matchDate.toLocaleDateString("en-US", {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric",
-                              })}
-                            </span>
-                            <span className="mx-1">•</span>
-                            <span>
-                              {matchDate.toLocaleTimeString("en-US", {
-                                hour: "numeric",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Away Team */}
-                        <div className="flex items-center gap-4 flex-1 justify-end">
-                          <span className="text-lg font-semibold text-gray-800">
-                            {away?.name || "Unknown Team"}
-                          </span>
-                          {away?.logo && (
-                            <Image
-                              src={away.logo}
-                              alt={away.name}
-                              width={64}
-                              height={64}
-                              className="w-16 h-16 object-cover rounded-full border-2 border-gray-200"
-                            />
-                          )}
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => handleDeleteMatch(match.id)}
-                        className="text-red-500 hover:text-red-700 ml-6 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <FaRegTrashAlt size={20} className="cursor-pointer" />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
             ) : (
-              <p className="text-gray-500">
-                {selectedLeague
-                  ? "No matches scheduled"
-                  : "Select a league to view matches"}
-              </p>
+              <>
+                {/* Scheduled Matches */}
+                {scheduledMatches.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                      Scheduled Matches
+                    </h3>
+                    <ul className="space-y-4">
+                      {scheduledMatches.map((match) => (
+                        <MatchListItem
+                          key={match.id}
+                          match={match}
+                          teams={teams}
+                          onDelete={handleDeleteMatch}
+                          deletable={true}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Completed Matches */}
+                {completedMatches.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                      Completed Matches
+                    </h3>
+                    <ul className="space-y-4">
+                      {completedMatches.map((match) => (
+                        <MatchListItem
+                          key={match.id}
+                          match={match}
+                          teams={teams}
+                          onDelete={handleDeleteMatch}
+                          deletable={false}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {matches.length === 0 && (
+                  <p className="text-gray-500">
+                    {selectedLeague
+                      ? "No matches found"
+                      : "Select a league to view matches"}
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
       </div>
     </AuthContextProvider>
+  );
+}
+
+function MatchListItem({ match, teams, onDelete, deletable }) {
+  const home = teams.find((t) => t.id === match.homeTeam);
+  const away = teams.find((t) => t.id === match.awayTeam);
+  const matchDate = new Date(match.date.seconds * 1000);
+
+  return (
+    <li className="p-6 bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-200 flex justify-between items-center">
+      <div className="flex-1 flex items-center gap-6">
+        {/* Home Team */}
+        <div className="flex items-center gap-4 flex-1">
+          {home?.logo && (
+            <Image
+              src={home.logo}
+              alt={home.name}
+              width={64}
+              height={64}
+              className="w-16 h-16 object-cover rounded-full border-2 border-gray-200"
+            />
+          )}
+          <span className="text-lg font-semibold text-gray-800">
+            {home?.name || "Unknown Team"}
+          </span>
+        </div>
+
+        {/* Match Details */}
+        <div className="flex flex-col items-center mx-4">
+          <div className="bg-gray-100 px-4 py-2 rounded-full">
+            <span className="font-bold text-gray-600">VS</span>
+          </div>
+          <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>
+              {matchDate.toLocaleDateString("en-US", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+            <span className="mx-1">•</span>
+            <span>
+              {matchDate.toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
+        </div>
+
+        {/* Away Team */}
+        <div className="flex items-center gap-4 flex-1 justify-end">
+          <span className="text-lg font-semibold text-gray-800">
+            {away?.name || "Unknown Team"}
+          </span>
+          {away?.logo && (
+            <Image
+              src={away.logo}
+              alt={away.name}
+              width={64}
+              height={64}
+              className="w-16 h-16 object-cover rounded-full border-2 border-gray-200"
+            />
+          )}
+        </div>
+      </div>
+
+      {deletable && (
+        <button
+          onClick={() => onDelete(match.id)}
+          className="text-red-500 hover:text-red-700 ml-6 p-2 hover:bg-red-50 rounded-lg transition-colors"
+        >
+          <FaRegTrashAlt size={20} className="cursor-pointer" />
+        </button>
+      )}
+    </li>
   );
 }
