@@ -4,7 +4,7 @@ import Image from "next/image";
 export default function Header() {
   return (
     <header>
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6 bg-[#FDFEFE]/90 fixed backdrop-blur-sm w-full z-50 border-b-1 border-gray-400/20">
+      <div className="container flex h-16 items-center justify-between px-4 md:px-6 bg-[#FDFEFE]/70 fixed backdrop-blur-sm w-full z-50 border-b-1 border-gray-400/20">
         <div className="flex items-center gap-2">
           <Image
             src="/images/logo.png"
