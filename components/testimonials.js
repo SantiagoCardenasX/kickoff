@@ -6,19 +6,19 @@ export default function Testimonials() {
     {
       name: "Carlos Rodriguez",
       role: "League Administrator",
-      image: "/images/testimonial-1.jpg",
+      image: "https://plus.unsplash.com/premium_photo-1671656349218-5218444643d8?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       quote: "KICKOFF has transformed how we run our community soccer league. The automatic standings and scheduling features have saved me countless hours of work."
     },
     {
       name: "Sarah Johnson",
       role: "Team Coach",
-      image: "/images/testimonial-2.jpg",
-      quote: "As a coach, having all my team's information in one place is invaluable. The player stats tracking has helped me identify strengths and areas for improvement."
+      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      quote: "As a coach, having all my team's information in one place is invaluable. The stats tracking has helped me identify strengths and areas for improvement."
     },
     {
       name: "Michael Chen",
       role: "Sports Club Director",
-      image: "/images/testimonial-3.jpg",
+      image: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       quote: "We manage multiple leagues across different age groups, and KICKOFF has streamlined our entire operation. The parents and players love the transparency it provides."
     }
   ];
